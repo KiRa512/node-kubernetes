@@ -1,0 +1,41 @@
+pipeline {
+    environment {
+        dockerimagename = "thetips4you/nodeapp"
+    }
+    
+    agent any
+
+    stages {
+        stage ("checkout source code") {
+            steps {
+                git 'https://github.com/shazforiot/nodeapp_test.git'
+            }
+        }
+
+        stage ("build image") {
+            steps {
+                script {
+            dockerImage = sh(script: "sudo docker build -t ${dockerimagename} .", returnStdout: true).trim()                }
+            }
+        }
+
+        stage("pushing image") {
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com/', 'dockerhublogin') {
+                        dockerImage.push("latest")
+                    }
+                }
+            }
+        }
+
+        stage("deploying app to Kubernetes") {
+            steps {
+                script {
+                    kubernetesDeploy(configs: "deploymentservice.yml", kubeconfigId: "kubernetes")
+                }
+            }
+        }
+    }
+    
+}

@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodeapp-deployment
+  labels:
+    app: nodeapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nodeapp
+  template:
+    metadata:
+      labels:
+        app: nodeapp 
+    spec:
+      containers:
+      - name: nodeserver
+        image: thetips4you/nodeapp:latest
+        ports:
+        - containerPort: 3000
+        resources:
+          requests:
+            memory: "256Mi"    # Minimum memory required to start the container
+            cpu: "500m"        # Minimum CPU allocated for the container
+          limits:
+            memory: "512Mi"    # Maximum memory the container can use
+            cpu: "1000m"       # Maximum CPU the container can use
+
+        
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodeapp-service
+spec:
+  selector:
+    app: nodeapp 
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 3000
+    nodePort: 31110
